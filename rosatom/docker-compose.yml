@@ -1,0 +1,36 @@
+# docker-compose.yml
+
+
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: rosatom
+      POSTGRES_USER: rosatom
+      POSTGRES_PASSWORD: 12345
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - django_network
+
+  web:
+    build: .
+    command: daphne -b 0.0.0.0 -p 8000 rosatom.asgi:application
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      DEBUG: "1"
+      DATABASE_URL: postgres://rosatom:12345@db:5432/rosatom
+      DJANGO_SETTINGS_MODULE: rosatom.settings
+    depends_on:
+      - db
+    networks:
+      - django_network
+
+volumes:
+  postgres_data:
+
+networks:
+  django_network:
